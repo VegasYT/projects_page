@@ -362,9 +362,17 @@ const App = () => {
       {selectedProject && contextMenuPosition && (
         <div
           className="fixed inset-0 z-50"
-          onClick={() => {
-            setSelectedProject(null);
-            setContextMenuPosition(null);
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              e.currentTarget.dataset.mousedownOutside = 'true';
+            }
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && e.currentTarget.dataset.mousedownOutside === 'true') {
+              setSelectedProject(null);
+              setContextMenuPosition(null);
+            }
+            delete e.currentTarget.dataset.mousedownOutside;
           }}
         >
           <div
@@ -430,9 +438,17 @@ const App = () => {
       {isAddProjectModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={() => {
-            setIsAddProjectModalOpen(false);
-            setNewProject({ name: '', subdomain: '' });
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              e.currentTarget.dataset.mousedownOutside = 'true';
+            }
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && e.currentTarget.dataset.mousedownOutside === 'true') {
+              setIsAddProjectModalOpen(false);
+              setNewProject({ name: '', subdomain: '' });
+            }
+            delete e.currentTarget.dataset.mousedownOutside;
           }}
         >
           <div
