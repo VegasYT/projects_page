@@ -5,6 +5,9 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [selectedProject, setSelectedProject] = useState(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState(null);
+  const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+  const [newProject, setNewProject] = useState({ name: '', subdomain: '' });
 
   // Пример данных проектов из БД
   const projects = [
@@ -101,36 +104,40 @@ const App = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
-              <p className="text-sm text-gray-600 mt-1">Manage your landing pages</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">My Projects</h1>
+              <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">Manage your landing pages</p>
             </div>
-            
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/30">
-              <Plus size={20} />
-              New Project
+
+            <button
+              onClick={() => setIsAddProjectModalOpen(true)}
+              className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
+            >
+              <Plus size={18} className="md:w-5 md:h-5" />
+              <span className="hidden sm:inline">New Project</span>
+              <span className="sm:hidden">New</span>
             </button>
           </div>
 
           {/* Search and Filters */}
-          <div className="mt-6 flex items-center gap-4">
+          <div className="mt-4 md:mt-6 flex items-center gap-2 md:gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-9 md:pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
               />
             </div>
-            
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+
+            <div className="flex items-center gap-1 md:gap-2 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                className={`px-2 md:px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-all ${
                   viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -138,7 +145,7 @@ const App = () => {
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                className={`px-2 md:px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-all ${
                   viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -150,15 +157,15 @@ const App = () => {
       </div>
 
       {/* Projects Count */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <p className="text-sm text-gray-600">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
+        <p className="text-xs md:text-sm text-gray-600">
           {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
           {searchQuery && ' found'}
         </p>
       </div>
 
       {/* Projects Grid/List */}
-      <div className="max-w-7xl mx-auto px-6 pb-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-8 md:pb-12">
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project, index) => (
@@ -190,6 +197,11 @@ const App = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setContextMenuPosition({
+                          top: rect.bottom + window.scrollY + 5,
+                          left: rect.left + window.scrollX - 150
+                        });
                         setSelectedProject(project.id);
                       }}
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -247,26 +259,27 @@ const App = () => {
                   console.log('Opening project:', project.subdomain);
                 }}
               >
-                <div className="p-5 flex items-center gap-4">
+                <div className="p-3 md:p-5 flex items-center gap-2 md:gap-4">
                   {/* Gradient Circle */}
-                  <div className={`w-16 h-16 rounded-lg bg-gradient-to-r ${gradients[index % gradients.length]} flex items-center justify-center flex-shrink-0`}>
-                    <Globe size={24} className="text-white" />
+                  <div className={`w-12 h-12 md:w-16 md:h-16 rounded-lg bg-gradient-to-r ${gradients[index % gradients.length]} flex items-center justify-center flex-shrink-0`}>
+                    <Globe size={20} className="text-white md:hidden" />
+                    <Globe size={24} className="text-white hidden md:block" />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
+                    <h3 className="text-base md:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
                       {project.name}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-1">
+                    <p className="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 line-clamp-1 hidden sm:block">
                       {project.description}
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-500">
+                      <span className="flex items-center gap-1 truncate">
                         <Globe size={12} />
-                        {project.subdomain}.yourdomain.com
+                        <span className="truncate">{project.subdomain}.yourdomain.com</span>
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 hidden sm:flex">
                         <Calendar size={12} />
                         Updated {getTimeSince(project.updated_at)}
                       </span>
@@ -274,38 +287,43 @@ const App = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         console.log('Edit:', project.id);
                       }}
-                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1.5 md:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors hidden sm:block"
                       title="Edit"
                     >
-                      <Edit size={18} />
+                      <Edit size={16} className="md:w-[18px] md:h-[18px]" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         window.open(`https://${project.subdomain}.yourdomain.com`, '_blank');
                       }}
-                      className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                      className="p-1.5 md:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors hidden sm:block"
                       title="Open"
                     >
-                      <ExternalLink size={18} />
+                      <ExternalLink size={16} className="md:w-[18px] md:h-[18px]" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setContextMenuPosition({
+                          top: rect.bottom + window.scrollY + 5,
+                          left: rect.left + window.scrollX - 150
+                        });
                         setSelectedProject(project.id);
                       }}
-                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1.5 md:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
                       title="More"
                     >
-                      <MoreVertical size={18} />
+                      <MoreVertical size={16} className="md:w-[18px] md:h-[18px]" />
                     </button>
-                    <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all ml-2" />
+                    <ChevronRight size={18} className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all ml-1 md:ml-2 hidden sm:block md:w-5 md:h-5" />
                   </div>
                 </div>
               </div>
@@ -328,7 +346,10 @@ const App = () => {
                 : 'Create your first landing page to get started'}
             </p>
             {!searchQuery && (
-              <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 inline-flex items-center gap-2 shadow-lg shadow-blue-500/30">
+              <button
+                onClick={() => setIsAddProjectModalOpen(true)}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 inline-flex items-center gap-2 shadow-lg shadow-blue-500/30"
+              >
                 <Plus size={20} />
                 Create Your First Project
               </button>
@@ -337,20 +358,36 @@ const App = () => {
         )}
       </div>
 
-      {/* Context Menu (Simple Version) */}
-      {selectedProject && (
+      {/* Context Menu */}
+      {selectedProject && contextMenuPosition && (
         <div
-          className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center"
-          onClick={() => setSelectedProject(null)}
+          className="fixed inset-0 z-50 animate-fadeIn"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              e.currentTarget.dataset.mousedownOutside = 'true';
+            }
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && e.currentTarget.dataset.mousedownOutside === 'true') {
+              setSelectedProject(null);
+              setContextMenuPosition(null);
+            }
+            delete e.currentTarget.dataset.mousedownOutside;
+          }}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl p-2 w-48"
+            className="absolute bg-white rounded-xl shadow-2xl p-2 w-48 animate-slideIn"
+            style={{
+              top: `${contextMenuPosition.top}px`,
+              left: `${contextMenuPosition.left}px`
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => {
                 console.log('Edit:', selectedProject);
                 setSelectedProject(null);
+                setContextMenuPosition(null);
               }}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-3"
             >
@@ -362,6 +399,7 @@ const App = () => {
                 const project = projects.find(p => p.id === selectedProject);
                 navigator.clipboard.writeText(`https://${project.subdomain}.yourdomain.com`);
                 setSelectedProject(null);
+                setContextMenuPosition(null);
               }}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-3"
             >
@@ -373,6 +411,7 @@ const App = () => {
                 const project = projects.find(p => p.id === selectedProject);
                 window.open(`https://${project.subdomain}.yourdomain.com`, '_blank');
                 setSelectedProject(null);
+                setContextMenuPosition(null);
               }}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-3"
             >
@@ -384,12 +423,108 @@ const App = () => {
               onClick={() => {
                 console.log('Delete:', selectedProject);
                 setSelectedProject(null);
+                setContextMenuPosition(null);
               }}
               className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-3"
             >
               <Trash2 size={16} />
               Delete
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Project Modal */}
+      {isAddProjectModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fadeIn"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              e.currentTarget.dataset.mousedownOutside = 'true';
+            }
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && e.currentTarget.dataset.mousedownOutside === 'true') {
+              setIsAddProjectModalOpen(false);
+              setNewProject({ name: '', subdomain: '' });
+            }
+            delete e.currentTarget.dataset.mousedownOutside;
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Project</h2>
+
+            <div className="space-y-4">
+              {/* Project Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                  placeholder="My Awesome Project"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Subdomain */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subdomain
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newProject.subdomain}
+                    onChange={(e) => {
+                      // Only allow lowercase letters, numbers, and hyphens
+                      const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                      setNewProject({ ...newProject, subdomain: value });
+                    }}
+                    placeholder="my-project"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium whitespace-nowrap">
+                    .yourdomain.com
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Only lowercase letters, numbers, and hyphens allowed
+                </p>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsAddProjectModalOpen(false);
+                  setNewProject({ name: '', subdomain: '' });
+                }}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (newProject.name && newProject.subdomain) {
+                    console.log('Creating project:', newProject);
+                    // Here you would make API call to create the project
+                    setIsAddProjectModalOpen(false);
+                    setNewProject({ name: '', subdomain: '' });
+                  }
+                }}
+                disabled={!newProject.name || !newProject.subdomain}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Create Project
+              </button>
+            </div>
           </div>
         </div>
       )}
