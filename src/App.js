@@ -361,7 +361,7 @@ const App = () => {
       {/* Context Menu */}
       {selectedProject && contextMenuPosition && (
         <div
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-50 animate-fadeIn"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
               e.currentTarget.dataset.mousedownOutside = 'true';
@@ -376,7 +376,7 @@ const App = () => {
           }}
         >
           <div
-            className="absolute bg-white rounded-xl shadow-2xl p-2 w-48"
+            className="absolute bg-white rounded-xl shadow-2xl p-2 w-48 animate-slideIn"
             style={{
               top: `${contextMenuPosition.top}px`,
               left: `${contextMenuPosition.left}px`
@@ -437,7 +437,7 @@ const App = () => {
       {/* Add Project Modal */}
       {isAddProjectModalOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fadeIn"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) {
               e.currentTarget.dataset.mousedownOutside = 'true';
@@ -452,7 +452,7 @@ const App = () => {
           }}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Project</h2>
